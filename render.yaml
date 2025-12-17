@@ -12,3 +12,7 @@ services:
         value: 10000
       - key: USE_REAL_EMAILS
         value: "false"
+      - key: MONGODB_URI
+        value: mongodb+srv://Kavishkhanna:kavish123@cluster0.mhogpcx.mongodb.net/
+      - key: DATABASE_NAME
+        value: splitwiseApp

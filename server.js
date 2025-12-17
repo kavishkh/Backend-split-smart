@@ -130,6 +130,7 @@ const initializeDatabase = async () => {
         setTimeout(initializeDatabase, 5000);
       } else {
         console.error('⚠️  Maximum retry attempts reached. Starting without database connectivity');
+        console.warn('⚠️  Application will run in limited mode without database access');
       }
     }
   } catch (error) {
@@ -140,6 +141,7 @@ const initializeDatabase = async () => {
       setTimeout(initializeDatabase, 5000);
     } else {
       console.error('⚠️  Maximum retry attempts reached. Starting without database connectivity');
+      console.warn('⚠️  Application will run in limited mode without database access');
     }
   }
 };
@@ -152,7 +154,8 @@ const checkDbAvailability = (res) => {
   if (!isDatabaseAvailable() || !db) {
     return res.status(503).json({ 
       error: 'Database not connected',
-      message: 'Service temporarily unavailable due to database connectivity issues.'
+      message: 'Service temporarily unavailable due to database connectivity issues.',
+      suggestion: 'Please check MongoDB credentials and network connectivity.'
     });
   }
   return null;

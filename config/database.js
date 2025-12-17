@@ -56,10 +56,16 @@ const connectDatabase = async () => {
     if (error.message.includes('bad auth')) {
       console.error('🔐 Authentication failed. Please check your MongoDB username and password.');
       console.error('   Make sure to URL encode special characters in your password.');
+      console.error('   Current URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//USERNAME:PASSWORD@'));
     } else if (error.message.includes('ENOTFOUND')) {
       console.error('🌐 DNS lookup failed. Please check your MongoDB URI.');
     } else if (error.message.includes('ECONNREFUSED')) {
       console.error('🔌 Connection refused. MongoDB server may be down or unreachable.');
+    } else if (error.code === 8000) {
+      console.error('🔐 Atlas authentication failed. Please verify:');
+      console.error('   1. Username and password are correct');
+      console.error('   2. User has proper permissions on the cluster');
+      console.error('   3. IP address is whitelisted in MongoDB Atlas');
     }
     
     if (error.stack) {
