@@ -36,13 +36,19 @@ const createTransporter = () => {
       }
 
       const transporter = nodemailer.createTransport(transporterConfig);
-      transporter.verify((error, success) => {
-        if (error) {
-          console.error('❌ Email transporter verification failed:', error);
-        } else {
-          console.log('✅ Email transporter verified successfully');
-        }
-      });
+      
+      // Only verify transporter in development environment
+      if (process.env.NODE_ENV !== 'production') {
+        transporter.verify((error, success) => {
+          if (error) {
+            console.error('❌ Email transporter verification failed:', error);
+          } else {
+            console.log('✅ Email transporter verified successfully');
+          }
+        });
+      } else {
+        console.log('📧 Email transporter created (verification skipped in production)');
+      }
       
       return transporter;
     } catch (error) {
@@ -66,14 +72,18 @@ const createTransporter = () => {
         }
       });
       
-      // Verify the transporter configuration
-      transporter.verify((error, success) => {
-        if (error) {
-          console.error('❌ Email transporter verification failed:', error);
-        } else {
-          console.log('✅ Email transporter verified successfully');
-        }
-      });
+      // Only verify transporter in development environment
+      if (process.env.NODE_ENV !== 'production') {
+        transporter.verify((error, success) => {
+          if (error) {
+            console.error('❌ Email transporter verification failed:', error);
+          } else {
+            console.log('✅ Email transporter verified successfully');
+          }
+        });
+      } else {
+        console.log('📧 Email transporter created (verification skipped in production)');
+      }
       
       return transporter;
     } catch (error) {
@@ -107,7 +117,9 @@ const createMockTransporter = () => {
       };
     },
     verify: (callback) => {
-      callback(null, true);
+      // Mock verification always succeeds
+      if (callback) callback(null, true);
+      return Promise.resolve(true);
     }
   };
 };
