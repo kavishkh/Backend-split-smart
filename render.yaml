@@ -13,6 +13,6 @@ services:
       - key: USE_REAL_EMAILS
         value: "false"
       - key: MONGODB_URI
-        value: mongodb+srv://Kavishkhanna:kavish123@cluster0.mhogpcx.mongodb.net/
+        value: mongodb+srv://kavishkhanna06_db_user:kavish123@cluster0.wv2snu3.mongodb.net/?appName=Cluster0
       - key: DATABASE_NAME
         value: splitwiseApp
