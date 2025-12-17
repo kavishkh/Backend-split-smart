@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 // MongoDB configuration
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://noreplysplitsmart_db_user:splitsmart12@splitsmart.mnshqrq.mongodb.net/';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Kavishkhanna:kavish123@cluster0.mhogpcx.mongodb.net/';
 const DATABASE_NAME = process.env.DATABASE_NAME || 'splitwiseApp';
 
 let client;
