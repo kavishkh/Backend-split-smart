@@ -39,7 +39,10 @@ const io = new Server(server, {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  credentials: true
+}));
 app.use(express.json());
 app.use(session({
   secret: process.env.JWT_SECRET || 'splitwise_jwt_secret_key',
