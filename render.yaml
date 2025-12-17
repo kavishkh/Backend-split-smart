@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: splitwise-backend
+    name: backend-split-smart
     env: node
     plan: free
     buildCommand: npm install
@@ -16,3 +16,7 @@ services:
         value: mongodb+srv://kavishkhanna06_db_user:kavish123@cluster0.wv2snu3.mongodb.net/?appName=Cluster0
       - key: DATABASE_NAME
         value: splitwiseApp
+      - key: FRONTEND_URL
+        value: https://frontend-split-smart.vercel.app
+      - key: GOOGLE_CALLBACK_URL
+        value: https://backend-split-smart.onrender.com/auth/google/callback
