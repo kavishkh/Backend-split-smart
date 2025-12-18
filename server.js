@@ -135,10 +135,8 @@ if (transporter) {
   });
 }
 
-// Database connection with retry logic
+// Simplified database initialization - no retries to fail fast
 let db;
-let connectionRetryCount = 0;
-const MAX_RETRY_ATTEMPTS = 5;
 
 const initializeDatabase = async () => {
   try {
@@ -147,35 +145,17 @@ const initializeDatabase = async () => {
     if (database) {
       db = database;
       console.log('✅ Database connected successfully');
-      connectionRetryCount = 0;
     } else {
-      connectionRetryCount++;
-      if (connectionRetryCount <= MAX_RETRY_ATTEMPTS) {
-        console.log(`🔄 Retry attempt ${connectionRetryCount}/${MAX_RETRY_ATTEMPTS} in 5 seconds...`);
-        setTimeout(initializeDatabase, 5000);
-      } else {
-        console.error('⚠️  Maximum retry attempts reached. Starting without database connectivity');
-        console.warn('⚠️  Application will run in limited mode without database access');
-        console.warn('⚠️  Please check MongoDB credentials and network connectivity');
-        // Continue running the application even without database
-      }
+      console.error('❌ Database connection failed - continuing without database');
+      console.warn('⚠️  Application will run in limited mode without database access');
     }
   } catch (error) {
     console.error('❌ Database initialization error:', error);
-    connectionRetryCount++;
-    if (connectionRetryCount <= MAX_RETRY_ATTEMPTS) {
-      console.log(`🔄 Retry attempt ${connectionRetryCount}/${MAX_RETRY_ATTEMPTS} in 5 seconds...`);
-      setTimeout(initializeDatabase, 5000);
-    } else {
-      console.error('⚠️  Maximum retry attempts reached. Starting without database connectivity');
-      console.warn('⚠️  Application will run in limited mode without database access');
-      console.warn('⚠️  Please check MongoDB credentials and network connectivity');
-      // Continue running the application even without database
-    }
+    console.warn('⚠️  Application will continue running without database');
   }
 };
 
-// Initialize database
+// Initialize database immediately
 console.log('🚀 Starting database initialization...');
 initializeDatabase().catch(error => {
   console.error('🚨 Failed to start database initialization:', error);

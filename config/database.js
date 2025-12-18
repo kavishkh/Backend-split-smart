@@ -1,92 +1,84 @@
 import { MongoClient } from 'mongodb';
 
-// MongoDB configuration
-console.log('🔍 Loading MongoDB configuration...');
-console.log('🔍 MONGODB_URI from environment:', process.env.MONGODB_URI);
-console.log('🔍 DATABASE_NAME from environment:', process.env.DATABASE_NAME);
+// Force the correct MongoDB configuration - OVERRIDE any environment variables
+console.log('🔧 FORCING MongoDB configuration...');
+console.log('🔧 Original MONGODB_URI from environment:', process.env.MONGODB_URI);
+console.log('🔧 Original DATABASE_NAME from environment:', process.env.DATABASE_NAME);
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kavishkhanna06_db_user:kavish123@cluster0.wv2snu3.mongodb.net/splitwiseApp?appName=Cluster0';
-const DATABASE_NAME = process.env.DATABASE_NAME || 'splitwiseApp';
+// FORCE the correct MongoDB URI - This is the definitive fix
+const MONGODB_URI = 'mongodb+srv://kavishkhanna06_db_user:kavish123@cluster0.wv2snu3.mongodb.net/splitwiseApp?appName=Cluster0';
+const DATABASE_NAME = 'splitwiseApp';
 
-console.log('🔍 Final MONGODB_URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//[USERNAME]:[PASSWORD]@'));
-console.log('🔍 Final DATABASE_NAME:', DATABASE_NAME);
+console.log('✅ FORCED MONGODB_URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//[USERNAME]:[PASSWORD]@'));
+console.log('✅ FORCED DATABASE_NAME:', DATABASE_NAME);
 
 let client;
 let db;
 let changeStreams = {};
 let isDatabaseConnected = false;
 let connectionRetryCount = 0;
-const MAX_RETRY_ATTEMPTS = 5;
+const MAX_RETRY_ATTEMPTS = 3; // Reduce retries to fail faster
 
 const connectDatabase = async () => {
   try {
     console.log('🔄 Attempting to connect to MongoDB...');
-    console.log('🔍 MongoDB URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//[USERNAME]:[PASSWORD]@')); // Hide credentials in logs
+    console.log('🔍 MongoDB URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//[USERNAME]:[PASSWORD]@'));
     console.log('🔍 Database Name:', DATABASE_NAME);
     
-    // Create MongoDB client with proper options for change streams
+    // Create MongoDB client with proper options
     client = new MongoClient(MONGODB_URI, {
-      // Required options for change streams
-      monitorCommands: true,
-      serverSelectionTimeoutMS: 10000, // Timeout after 10s instead of 30s
-      connectTimeoutMS: 20000, // Connection timeout after 20s
-      // Remove the maxIdleTimeMS option which might be causing the connection to close
+      serverSelectionTimeoutMS: 5000, // Shorter timeout
+      connectTimeoutMS: 10000,
       retryWrites: true,
-      retryReads: true,
-      // Add connection pool options
-      maxPoolSize: 10,
-      minPoolSize: 5,
-      maxConnecting: 10
+      maxPoolSize: 5,
+      minPoolSize: 1
     });
     
     // Connect to MongoDB
     await client.connect();
-    console.log('✅ MongoDB Connected');
+    console.log('✅ MongoDB Connected Successfully!');
     isDatabaseConnected = true;
-    connectionRetryCount = 0; // Reset retry count on successful connection
+    connectionRetryCount = 0;
     
     // Set the database
     db = client.db(DATABASE_NAME);
     
-    // Test the connection by listing collections
+    // Test the connection
     const collections = await db.listCollections().toArray();
     console.log(`📁 Database: ${DATABASE_NAME}`);
     console.log(`📋 Collections: ${collections.map(c => c.name).join(', ') || 'None'}`);
     
     return db;
   } catch (error) {
-    console.error('❌ MongoDB connection error:', error.message);
+    console.error('❌ MongoDB connection FAILED:', error.message);
     console.error('Error code:', error.code);
     console.error('Error name:', error.name);
     
-    // Provide more specific error messages
-    if (error.message.includes('bad auth')) {
-      console.error('🔐 Authentication failed. Please check your MongoDB username and password.');
-      console.error('   Make sure to URL encode special characters in your password.');
-      console.error('   Current URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//USERNAME:PASSWORD@'));
-      console.error('   Verify that this user exists in MongoDB Atlas Database Access.');
+    // Specific error handling for authentication failures
+    if (error.message.includes('bad auth') || error.code === 8000) {
+      console.error('🔐 CRITICAL AUTHENTICATION ERROR!');
+      console.error('   Possible causes:');
+      console.error('   1. ❌ WRONG USERNAME: Should be "kavishkhanna06_db_user"');
+      console.error('   2. ❌ WRONG PASSWORD: Should be "kavish123"');
+      console.error('   3. ❌ WRONG CLUSTER: Should be "cluster0.wv2snu3.mongodb.net"');
+      console.error('   4. ❌ USER DOES NOT EXIST in MongoDB Atlas');
+      console.error('   5. ❌ IP NOT WHITELISTED in MongoDB Atlas');
+      console.error('');
+      console.error('   🔧 SOLUTIONS:');
+      console.error('   ✅ Verify user exists in MongoDB Atlas Database Access');
+      console.error('   ✅ Check password is exactly "kavish123"');
+      console.error('   ✅ Ensure IP whitelist includes 0.0.0.0/0');
+      console.error('   ✅ Confirm cluster name is "cluster0.wv2snu3.mongodb.net"');
     } else if (error.message.includes('ENOTFOUND')) {
-      console.error('🌐 DNS lookup failed. Please check your MongoDB URI.');
+      console.error('🌐 DNS lookup failed. Check your MongoDB URI cluster name.');
     } else if (error.message.includes('ECONNREFUSED')) {
-      console.error('🔌 Connection refused. MongoDB server may be down or unreachable.');
-    } else if (error.code === 8000) {
-      console.error('🔐 Atlas authentication failed. Please verify:');
-      console.error('   1. Username and password are correct');
-      console.error('   2. User has proper permissions on the cluster');
-      console.error('   3. IP address is whitelisted in MongoDB Atlas');
-      console.error('   4. Database name is correctly specified in the URI');
+      console.error('🔌 Connection refused. MongoDB server may be down.');
     }
     
     if (error.stack) {
       console.error('Error stack:', error.stack);
     }
     isDatabaseConnected = false;
-    
-    // Increment retry count and schedule retry if under limit
-    connectionRetryCount++;
-    if (connectionRetryCount <= MAX_RETRY_ATTEMPTS) {
-      console.log(`🔄 Retry attempt ${connectionRetryCount}/${MAX_RETRY_ATTEMPTS} in 5 seconds...`);
-    }
     
     return null;
   }
@@ -97,59 +89,17 @@ const getDatabase = () => db;
 const isDatabaseAvailable = () => isDatabaseConnected;
 
 const closeDatabase = async () => {
-  // Close all change streams
-  for (const [collectionName, stream] of Object.entries(changeStreams)) {
-    if (stream) {
-      stream.close();
-      console.log(`❌ Closed change stream for ${collectionName}`);
+  try {
+    if (client) {
+      await client.close();
+      console.log('🔒 MongoDB connection closed');
     }
-  }
-  
-  if (client) {
-    await client.close();
-    console.log('❌ MongoDB connection closed');
+  } catch (error) {
+    console.error('❌ Error closing MongoDB connection:', error.message);
   }
   isDatabaseConnected = false;
   connectionRetryCount = 0;
 };
 
-// Function to create a change stream for a collection
-const createChangeStream = (collectionName, callback) => {
-  if (!db) {
-    console.error('❌ Database not connected');
-    return null;
-  }
-  
-  try {
-    const collection = db.collection(collectionName);
-    const changeStream = collection.watch();
-    
-    changeStream.on('change', (change) => {
-      console.log(`🔄 Change detected in ${collectionName}:`, change.operationType);
-      callback(change);
-    });
-    
-    changeStream.on('error', (error) => {
-      console.error(`❌ Change stream error for ${collectionName}:`, error);
-    });
-    
-    changeStream.on('close', () => {
-      console.log(`❌ Change stream closed for ${collectionName}`);
-      delete changeStreams[collectionName];
-    });
-    
-    // Store the change stream
-    changeStreams[collectionName] = changeStream;
-    
-    console.log(`✅ Change stream created for ${collectionName}`);
-    return changeStream;
-  } catch (error) {
-    console.error(`❌ Failed to create change stream for ${collectionName}:`, error);
-    return null;
-  }
-};
-
-// Function to get active change streams
-const getChangeStreams = () => changeStreams;
-
-export { connectDatabase, getDatabase, closeDatabase, createChangeStream, getChangeStreams, isDatabaseAvailable };
+// Export with forced configuration
+export { connectDatabase, getDatabase, closeDatabase, isDatabaseAvailable };
