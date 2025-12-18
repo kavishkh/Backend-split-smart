@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 // MongoDB configuration
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kavishkhanna06_db_user:kavish123@cluster0.wv2snu3.mongodb.net/?appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kavishkhanna06_db_user:kavish123@cluster0.wv2snu3.mongodb.net/splitwiseApp?appName=Cluster0';
 const DATABASE_NAME = process.env.DATABASE_NAME || 'splitwiseApp';
 
 let client;
@@ -57,6 +57,7 @@ const connectDatabase = async () => {
       console.error('🔐 Authentication failed. Please check your MongoDB username and password.');
       console.error('   Make sure to URL encode special characters in your password.');
       console.error('   Current URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//USERNAME:PASSWORD@'));
+      console.error('   Verify that this user exists in MongoDB Atlas Database Access.');
     } else if (error.message.includes('ENOTFOUND')) {
       console.error('🌐 DNS lookup failed. Please check your MongoDB URI.');
     } else if (error.message.includes('ECONNREFUSED')) {
@@ -66,6 +67,7 @@ const connectDatabase = async () => {
       console.error('   1. Username and password are correct');
       console.error('   2. User has proper permissions on the cluster');
       console.error('   3. IP address is whitelisted in MongoDB Atlas');
+      console.error('   4. Database name is correctly specified in the URI');
     }
     
     if (error.stack) {

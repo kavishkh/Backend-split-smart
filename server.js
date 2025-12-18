@@ -33,15 +33,17 @@ const PORT = process.env.PORT || 3000; // Try a different port
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: ["https://frontend-split-smart.vercel.app", "http://localhost:5173", "http://localhost:5174"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true
   }
 });
 
 // Middleware
 app.use(cors({
-  origin: "*",
-  credentials: true
+  origin: ["https://frontend-split-smart.vercel.app", "http://localhost:5173", "http://localhost:5174"],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 app.use(express.json());
 app.use(session({
@@ -53,7 +55,9 @@ app.use(session({
   }),
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    httpOnly: true
   }
 }));
 app.use(passport.initialize());
@@ -131,6 +135,7 @@ const initializeDatabase = async () => {
       } else {
         console.error('⚠️  Maximum retry attempts reached. Starting without database connectivity');
         console.warn('⚠️  Application will run in limited mode without database access');
+        console.warn('⚠️  Please check MongoDB credentials and network connectivity');
       }
     }
   } catch (error) {
@@ -142,6 +147,7 @@ const initializeDatabase = async () => {
     } else {
       console.error('⚠️  Maximum retry attempts reached. Starting without database connectivity');
       console.warn('⚠️  Application will run in limited mode without database access');
+      console.warn('⚠️  Please check MongoDB credentials and network connectivity');
     }
   }
 };
@@ -199,7 +205,17 @@ app.get('/api/health', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     databaseConnected: isDatabaseAvailable(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Simple test endpoint to verify CORS
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'CORS is working correctly!',
+    origin: req.get('origin'),
+    timestamp: new Date().toISOString()
   });
 });
 
