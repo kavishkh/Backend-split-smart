@@ -23,8 +23,29 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load environment variables
+console.log('🔍 Loading environment variables...');
 const envPath = path.resolve(__dirname, '../.env');
-dotenv.config({ path: envPath });
+console.log('🔍 Looking for .env file at:', envPath);
+console.log('🔍 Current directory:', __dirname);
+
+// Try to load .env file
+try {
+  const result = dotenv.config({ path: envPath });
+  if (result.error) {
+    console.log('⚠️  Could not load .env file:', result.error.message);
+  } else {
+    console.log('✅ Loaded .env file successfully');
+  }
+} catch (error) {
+  console.log('⚠️  Error loading .env file:', error.message);
+}
+
+// Log important environment variables for debugging
+console.log('🔍 Environment variables for debugging:');
+console.log('   MONGODB_URI:', process.env.MONGODB_URI ? '[SET]' : '[NOT SET]');
+console.log('   DATABASE_NAME:', process.env.DATABASE_NAME || '[NOT SET]');
+console.log('   NODE_ENV:', process.env.NODE_ENV || '[NOT SET]');
+console.log('   PORT:', process.env.PORT || '[NOT SET]');
 
 const app = express();
 const PORT = process.env.PORT || 3000; // Try a different port
@@ -136,6 +157,7 @@ const initializeDatabase = async () => {
         console.error('⚠️  Maximum retry attempts reached. Starting without database connectivity');
         console.warn('⚠️  Application will run in limited mode without database access');
         console.warn('⚠️  Please check MongoDB credentials and network connectivity');
+        // Continue running the application even without database
       }
     }
   } catch (error) {
@@ -148,12 +170,17 @@ const initializeDatabase = async () => {
       console.error('⚠️  Maximum retry attempts reached. Starting without database connectivity');
       console.warn('⚠️  Application will run in limited mode without database access');
       console.warn('⚠️  Please check MongoDB credentials and network connectivity');
+      // Continue running the application even without database
     }
   }
 };
 
 // Initialize database
-initializeDatabase();
+console.log('🚀 Starting database initialization...');
+initializeDatabase().catch(error => {
+  console.error('🚨 Failed to start database initialization:', error);
+  console.warn('⚠️  Application will continue running without database');
+});
 
 // Utility function for database availability check
 const checkDbAvailability = (res) => {
@@ -1458,13 +1485,15 @@ process.on('exit', (code) => {
 });
 
 process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-  process.exit(1);
+  console.error('⚠️  Uncaught Exception:', err);
+  console.error('⚠️  Continuing application despite error...');
+  // Don't exit the process to allow the application to continue running
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
+  console.error('⚠️  Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('⚠️  Continuing application despite MongoDB connection error...');
+  // Don't exit the process to allow the application to continue running
 });
 
 export { io, connectedClients };

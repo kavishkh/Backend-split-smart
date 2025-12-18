@@ -1,8 +1,15 @@
 import { MongoClient } from 'mongodb';
 
 // MongoDB configuration
+console.log('🔍 Loading MongoDB configuration...');
+console.log('🔍 MONGODB_URI from environment:', process.env.MONGODB_URI);
+console.log('🔍 DATABASE_NAME from environment:', process.env.DATABASE_NAME);
+
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kavishkhanna06_db_user:kavish123@cluster0.wv2snu3.mongodb.net/splitwiseApp?appName=Cluster0';
 const DATABASE_NAME = process.env.DATABASE_NAME || 'splitwiseApp';
+
+console.log('🔍 Final MONGODB_URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//[USERNAME]:[PASSWORD]@'));
+console.log('🔍 Final DATABASE_NAME:', DATABASE_NAME);
 
 let client;
 let db;
@@ -13,9 +20,9 @@ const MAX_RETRY_ATTEMPTS = 5;
 
 const connectDatabase = async () => {
   try {
-    console.log('Attempting to connect to MongoDB...');
-    console.log('MongoDB URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//[USERNAME]:[PASSWORD]@')); // Hide credentials in logs
-    console.log('Database Name:', DATABASE_NAME);
+    console.log('🔄 Attempting to connect to MongoDB...');
+    console.log('🔍 MongoDB URI:', MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//[USERNAME]:[PASSWORD]@')); // Hide credentials in logs
+    console.log('🔍 Database Name:', DATABASE_NAME);
     
     // Create MongoDB client with proper options for change streams
     client = new MongoClient(MONGODB_URI, {
