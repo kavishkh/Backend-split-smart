@@ -62,7 +62,7 @@ const io = new Server(server, {
 
 // Middleware
 app.use(cors({
-  origin: ["https://frontend-split-smart.vercel.app", "http://localhost:5173", "http://localhost:5174"],
+  origin: ["https://frontend-split-smart.vercel.app", "http://localhost:5173", "http://localhost:5174", "https://frontend-splitsmart.onrender.com"],
   credentials: true,
   optionsSuccessStatus: 200
 }));
