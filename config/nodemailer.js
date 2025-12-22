@@ -5,10 +5,11 @@ dotenv.config();
 
 // Create a transporter object using the default SMTP transport
 const createTransporter = () => {
-  // Check if we should use real emails
-  const useRealEmails = process.env.USE_REAL_EMAILS === 'true';
-  
-  // If not using real emails, return mock transporter immediately
+  // Production-safe email logic
+  const useRealEmails =
+    process.env.NODE_ENV === 'production' &&
+    process.env.USE_REAL_EMAILS === 'true';
+
   if (!useRealEmails) {
     console.log('📧 Using mock email transporter (real emails disabled)');
     return createMockTransporter();
@@ -56,15 +57,9 @@ const createMockTransporter = () => {
       console.log('   From:', mailOptions.from);
       console.log('   To:', mailOptions.to);
       console.log('   Subject:', mailOptions.subject);
-      console.log('   Text:', mailOptions.text ? mailOptions.text.substring(0, 100) + '...' : 'None');
-      console.log('   HTML:', mailOptions.html ? mailOptions.html.substring(0, 100) + '...' : 'None');
-      
-      // Generate a mock message ID
-      const messageId = `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
       return {
-        messageId: messageId,
-        response: 'Mock email sent successfully'
+        messageId: `mock-${Date.now()}`,
       };
     },
     verify: (callback) => {
