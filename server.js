@@ -54,20 +54,47 @@ const PORT = process.env.PORT || 3000; // Try a different port
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["https://frontend-split-smart.vercel.app", "http://localhost:5173", "http://localhost:5174"],
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow Postman / server calls
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    credentials: true
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
   },
   transports: ['websocket'],
   allowEIO3: true
 });
 
 // Middleware
+const allowedOrigins = [
+  "https://split-smart-ten.vercel.app",
+  "https://frontend-split-smart.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://frontend-splitsmart.onrender.com"
+];
+
 app.use(cors({
-  origin: ["https://frontend-split-smart.vercel.app", "http://localhost:5173", "http://localhost:5174", "https://frontend-splitsmart.onrender.com"],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow Postman / server calls
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// VERY IMPORTANT (preflight)
+app.options("*", cors());
 app.use(express.json());
 app.use(session({
   secret: process.env.JWT_SECRET || 'splitwise_jwt_secret_key',
