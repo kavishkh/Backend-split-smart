@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 
 // Connect to the Socket.IO server
-const socket = io('http://localhost:40001', {
+const socket = io('https://backend-split-smart.onrender.com', {
   transports: ['websocket', 'polling'],
   reconnection: true,
   reconnectionAttempts: 5,

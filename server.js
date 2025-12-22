@@ -57,7 +57,9 @@ const io = new Server(server, {
     origin: ["https://frontend-split-smart.vercel.app", "http://localhost:5173", "http://localhost:5174"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true
-  }
+  },
+  transports: ['websocket'],
+  allowEIO3: true
 });
 
 // Middleware
@@ -215,6 +217,11 @@ app.get('/api/health', (req, res) => {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development'
   });
+});
+
+// Root endpoint to prevent 404 confusion
+app.get('/', (req, res) => {
+  res.send('Backend is running');
 });
 
 // Simple test endpoint to verify CORS
@@ -661,7 +668,7 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   try {
     const dbError = checkDbAvailability(res);
     if (dbError) return dbError;
