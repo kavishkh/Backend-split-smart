@@ -34,7 +34,7 @@ function wrapEmail({ title, headerColor, bodyHTML, to }) {
 async function sendEmail({ to, subject, html, text }) {
   try {
     const info = await transporter.sendMail({
-      from: `"SplitSmart No-Reply" <${process.env.EMAIL_USER}>`,
+      from: `"SplitSmart" <${process.env.EMAIL_USER}>`,
       replyTo: "no-reply@splitsmart.app",
       to,
       subject,
@@ -42,8 +42,10 @@ async function sendEmail({ to, subject, html, text }) {
       text
     });
 
+    console.log('📧 Email response:', info);
     return { success: true, messageId: info.messageId };
   } catch (err) {
+    console.error('📧 Email sending failed:', err);
     return { success: false, error: err.message };
   }
 }

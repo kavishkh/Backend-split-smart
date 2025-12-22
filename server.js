@@ -457,7 +457,7 @@ app.post('/api/forgot-password', async (req, res) => {
       try {
         console.log('📧 Attempting to send OTP email to:', email);
         const info = await transporter.sendMail(mailOptions);
-        console.log('📧 Password reset OTP sent successfully to:', email, 'Message ID:', info.messageId);
+        console.log('📧 Email response:', info);
         res.json({ message: 'Password reset OTP sent to your email.' });
       } catch (emailError) {
         console.error('❌ Error sending password reset email to:', email, emailError);
@@ -627,6 +627,23 @@ app.post('/api/reset-password', async (req, res) => {
   } catch (error) {
     console.error('💥 Error resetting password:', error);
     res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
+// Test email route
+app.get('/test-mail', async (req, res) => {
+  try {
+    const info = await transporter.sendMail({
+      from: `"SplitSmart" <${process.env.EMAIL_USER}>`,
+      to: 'yourpersonalemail@gmail.com', // Replace with your actual email for testing
+      subject: 'Test Mail',
+      text: 'If you got this, email works.',
+    });
+
+    res.json(info);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err.message);
   }
 });
 

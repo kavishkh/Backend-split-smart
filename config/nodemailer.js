@@ -22,37 +22,23 @@ const createTransporter = () => {
       return createMockTransporter();
     }
 
-    // Configure transporter based on email service
-    const transporterConfig = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    // Safe Gmail configuration
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    };
-
-    // Special handling for Gmail
-    if (process.env.EMAIL_SERVICE === 'gmail' || transporterConfig.host.includes('gmail')) {
-      transporterConfig.auth.user = process.env.EMAIL_USER;
-      transporterConfig.auth.pass = process.env.EMAIL_PASS;
-    }
-
-    const transporter = nodemailer.createTransport(transporterConfig);
+        pass: process.env.EMAIL_PASS,
+      },
+    });
     
-    // Only verify transporter in development environment
-    if (process.env.NODE_ENV !== 'production') {
-      transporter.verify((error, success) => {
-        if (error) {
-          console.error('❌ Email transporter verification failed:', error);
-        } else {
-          console.log('✅ Email transporter verified successfully');
-        }
-      });
-    } else {
-      console.log('📧 Email transporter created (verification skipped in production)');
-    }
+    // Verify SMTP connection
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('❌ Email transporter verification failed:', error);
+      } else {
+        console.log('✅ SMTP connection verified successfully');
+      }
+    });
     
     return transporter;
   } catch (error) {
